@@ -26,8 +26,8 @@ def main():
     elif app_mode == "About Project":
         st.subheader("About Dataset")
         st.text("This dataset contains images of the following food items:")
+        st.code("Category- ")
         st.code("Cuisines- ")
-        st.code("Desserts- ")
         st.subheader("Content")
         st.text("This dataset contains three folders:")
         st.text("1. train (100 images each)")
