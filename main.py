@@ -17,10 +17,14 @@ def download_model():
     labels_output = 'labels.txt'
     gdown.download(labels_url, labels_output, quiet=False)
 
+# Function to load the model
+def load_model():
+    model = tf.keras.models.load_model("trained_model.h5")
+    return model
+
 # Tensorflow Model Prediction
 def model_prediction(model, test_image):
     image = tf.keras.preprocessing.image.load_img(test_image, target_size=(64, 64))
-    model = tf.keras.models.load_model("trained_model.h5")
     input_arr = tf.keras.preprocessing.image.img_to_array(image)
     input_arr = np.array([input_arr]) # Convert single image to batch
     predictions = model.predict(input_arr)
