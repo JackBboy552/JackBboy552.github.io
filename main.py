@@ -36,7 +36,7 @@ def main():
     st.title("AI FOOD RECOGNIZE SYSTEM")
 
     # Download the model if it's not already downloaded
-    if not os.path.exists("trained_model.h5"):
+    if not os.path.exists(download_model):
         download_model()
 
     # Load the model
