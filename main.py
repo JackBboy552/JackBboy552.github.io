@@ -18,8 +18,8 @@ def download_model():
     gdown.download(labels_url, labels_output, quiet=False)
 
 # Tensorflow Model Prediction
-def model_prediction(model, test_image):
-    model = tf.keras.models.load_model("trained_model.h5")
+def model_prediction(test_image):
+    model = tf.keras.models.load_model(download_model)
     image = tf.keras.preprocessing.image.load_img(test_image, target_size=(64, 64))
     input_arr = tf.keras.preprocessing.image.img_to_array(image)
     input_arr = np.array([input_arr]) # Convert single image to batch
