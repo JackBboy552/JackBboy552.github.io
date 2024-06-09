@@ -5,25 +5,9 @@ from PIL import Image
 import os
 import tensorflow as tf
 
-
-# Function to download .h5 file from Google Drive
-def download_model():
-    url = 'https://drive.google.com/drive/folders/11lpnE_iH61Q1pC4_2inhPAybpKrdF-Dx?usp=sharing'
-    history_model = 'trained_model.h5'
-    gdown.download(url, history_model, quiet=False)
-    
-    # Download labels.txt
-    labels_url = 'https://drive.google.com/file/d/1-1lNkU10M8vsq3cgxUbCFSKLxRMDe9_h/view?usp=sharing'
-    labels_output = 'labels.txt'
-    gdown.download(labels_url, labels_output, quiet=False)
-
-# Function to load the model
-def load_model():
-    model = tf.keras.models.load_model(download_model)
-    return model
-
 # Tensorflow Model Prediction
 def model_prediction(model, test_image):
+    model = tf.keras.models.load_model("trained_model.h5")
     image = tf.keras.preprocessing.image.load_img(test_image, target_size=(64, 64))
     input_arr = tf.keras.preprocessing.image.img_to_array(image)
     input_arr = np.array([input_arr]) # Convert single image to batch
@@ -34,13 +18,6 @@ def model_prediction(model, test_image):
 
 def main():
     st.title("AI FOOD RECOGNIZE SYSTEM")
-
-    # Download the model if it's not already downloaded
-    if not os.path.exists(download_model):
-        download_model()
-
-    # Load the model
-    model = model_prediction()
 
     app_mode = st.sidebar.selectbox("Select Page", ["Home", "About Project", "Prediction"])
 
@@ -69,7 +46,8 @@ def main():
 
             if st.button("Predict"):
                 st.success("Our Prediction")
-                class_index, confidence = model_prediction(model, test_image)
+                # class_index, confidence = model_prediction(model, test_image)
+                class_index, confidence = model_prediction(test_image)
                 # Reading Labels
                 with open("labels.txt") as f:
                     content = f.readlines()

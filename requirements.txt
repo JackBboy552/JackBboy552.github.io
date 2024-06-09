@@ -1,4 +1,5 @@
-numpy
 streamlit
 tensorflow
-gdown
+numpy
+matplotlib
+requests
