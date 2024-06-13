@@ -77,7 +77,7 @@ def main():
             
             class_index, confidence = model_prediction(test_image)
             
-            labels_path = "labels.txt"
+            labels_path = "Labels.txt"
             if os.path.exists(labels_path):
                 with open(labels_path) as f:
                     content = f.readlines()
