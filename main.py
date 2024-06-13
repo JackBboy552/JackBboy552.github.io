@@ -86,7 +86,7 @@ def main():
                 with open(labels_path) as f:
                     content = f.readlines()
                 label = [i.strip() for i in content]
-                st.success(f"Model predicts it's a "{label[class_index]}" ")
+                st.success(f"Model predicts it's a {label[class_index]}")
                 st.success(f"Accuracy: {confidence:.2f}% ")
             else:
                 st.error("Labels file not found. Please ensure 'labels.txt' is in the directory.")
