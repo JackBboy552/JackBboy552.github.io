@@ -9,9 +9,9 @@ def main():
     # Set page configuration
     st.set_page_config(page_title='AI Food Recognize System', page_icon='🍽️')
 
-    # Page title with GIF header
-    gif_path = "SuTCraveposter.gif"  # Path to your GIF file
-    st.image(gif_path, use_column_width=True)
+    # # Page title with GIF header
+    # gif_path = "SuTCraveposter.gif"  # Path to your GIF file
+    # st.image(gif_path, use_column_width=True)
 
     # Page title
     st.title('🍽️ AI Food Recognize System')
