@@ -3,11 +3,26 @@ import tensorflow as tf
 import numpy as np
 from PIL import Image
 import time
+import requests
+import tempfile
+import json
 
+# Function to download file from a Google Drive URL
+def download_file_from_google_drive(url, filename):
+    file_id = url.split('/')[-2]
+    download_url = f"https://drive.google.com/uc?export=download&id={file_id}"
+    response = requests.get(download_url)
+    if response.status_code != 200:
+        st.error(f"Failed to fetch file from {url}, status code: {response.status_code}")
+        st.stop()
+    with tempfile.NamedTemporaryFile(delete=False, suffix=filename) as tmp_file:
+        tmp_file.write(response.content)
+        return tmp_file.name
 
 # Tensorflow Model Prediction
 def model_prediction(test_image):
-    model = tf.keras.models.load_model("trained_model.h5")
+    model_file = download_file_from_google_drive("https://drive.google.com/uc?id=1ca9nnMI5l0xg50UetwGC3GDwnIIpShpE&export=download", "trained_model.h5")
+    model = tf.keras.models.load_model(model_file)
     image = tf.keras.preprocessing.image.load_img(test_image, target_size=(64, 64))
     input_arr = tf.keras.preprocessing.image.img_to_array(image)
     input_arr = np.array([input_arr]) # Convert single image to batch
@@ -62,11 +77,11 @@ def main():
                 #st.success("Our Prediction")
                 class_index, confidence = model_prediction(test_image)
                 # Reading Labels
-                with open("labels.txt") as f:
+                labels_file = download_file_from_google_drive("https://drive.google.com/uc?id=1-1lNkU10M8vsq3cgxUbCFSKLxRMDe9_h&export=download", "labels.txt")
+                with open(labels_file) as f:
                     content = f.readlines()
                 label = [i[:-1] for i in content]
                 st.success(f"Model predicts it's a {label[class_index]} with {confidence:.2f}% confidence.")
     #end of prediction page
 if __name__ == "__main__":
     main()
-

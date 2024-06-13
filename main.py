@@ -1,96 +1,72 @@
 import streamlit as st
 import tensorflow as tf
 import numpy as np
-import matplotlib.pyplot as plt
-import json
-import requests
-import tempfile
+from PIL import Image
+import time
 
-# URLs for the files stored in Google Drive
-model_url = "https://drive.google.com/file/d/1ca9nnMI5l0xg50UetwGC3GDwnIIpShpE/view?usp=drive_link"
-history_json_url = "https://drive.google.com/file/d/1-66WsU4u_dmhtCh-OYdmzEh8p2vAQvro/view?usp=drive_link"
-labels_txt_url = "https://drive.google.com/file/d/1-1lNkU10M8vsq3cgxUbCFSKLxRMDe9_h/view?usp=drive_link"
 
-# Function to download file from Google Drive
-def download_file(url):
-    response = requests.get(url)
-    response.raise_for_status()
-    return response.content
-
-# Load training history
-history_json = download_file(history_json_url).decode("utf-8")
-# history = json.loads(history_json)
-st.text(f"History JSON content: {history_json[:200]}")  # Print the first 200 characters for debugging
-
-# Check if the history_json is valid JSON
-try:
-    history = json.loads(history_json)
-except json.JSONDecodeError as e:
-    st.error(f"Failed to parse JSON: {e}")
-    st.stop()
-
-# Load labels
-labels_txt = download_file(labels_txt_url).decode("utf-8")
-# labels = labels_txt.splitlines()
-st.text(f"Labels TXT content: {labels_txt[:200]}")  # Print the first 200 characters for debugging
-labels = labels_txt.splitlines()
-
-# Streamlit App
-st.title("Model Training and Evaluation Results")
-
-# Plot accuracy and loss
-st.header("Training and Validation Accuracy/Loss")
-epochs = range(1, len(history['accuracy']) + 1)
-
-fig, ax = plt.subplots(1, 2, figsize=(14, 6))
-
-ax[0].plot(epochs, history['accuracy'], 'r', label='Training accuracy')
-ax[0].plot(epochs, history['val_accuracy'], 'b', label='Validation accuracy')
-ax[0].set_title('Training and Validation Accuracy')
-ax[0].set_xlabel('Epochs')
-ax[0].set_ylabel('Accuracy')
-ax[0].legend()
-
-ax[1].plot(epochs, history['loss'], 'r', label='Training loss')
-ax[1].plot(epochs, history['val_loss'], 'b', label='Validation loss')
-ax[1].set_title('Training and Validation Loss')
-ax[1].set_xlabel('Epochs')
-ax[1].set_ylabel('Loss')
-ax[1].legend()
-
-st.pyplot(fig)
-
-# Download and load the model
-st.header("Model Summary")
-
-with tempfile.NamedTemporaryFile(delete=False, suffix='.h5') as tmp_file:
-    tmp_file.write(download_file(model_url))
-    model_path = tmp_file.name
-
-model = tf.keras.models.load_model(model_path)
-
-# Display model summary
-stringlist = []
-model.summary(print_fn=lambda x: stringlist.append(x))
-model_summary = "\n".join(stringlist)
-st.text(model_summary)
-
-# Prediction on a single image
-st.header("Test Image Prediction")
-uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png"])
-
-if uploaded_file is not None:
-    image = tf.keras.preprocessing.image.load_img(uploaded_file, target_size=(64, 64))
+# Tensorflow Model Prediction
+def model_prediction(test_image):
+    model = tf.keras.models.load_model("trained_model.h5")
+    image = tf.keras.preprocessing.image.load_img(test_image, target_size=(64, 64))
     input_arr = tf.keras.preprocessing.image.img_to_array(image)
-    input_arr = np.array([input_arr])
-
+    input_arr = np.array([input_arr]) # Convert single image to batch
     predictions = model.predict(input_arr)
-    result_index = np.argmax(predictions)
-    predicted_class = labels[result_index]
+    class_index = np.argmax(predictions)
+    confidence = np.max(predictions) * 100  # Confidence score in percentage
+    return class_index, confidence
 
-    st.image(uploaded_file, caption=f"Predicted: {predicted_class}", use_column_width=True)
-    st.write(f"Prediction: {predicted_class}")
+def main():
+    st.title("AI FOOD RECOGNIZE SYSTEM")
 
-# Main
+    app_mode = st.sidebar.selectbox("Select Page", ["Home", "About Project", "Prediction"])
+
+    if app_mode == "Home":
+        st.header("Introduction")
+        st.image("home_img.png", width=500)  # Adjust the width as needed
+    
+    # start of about project
+    elif app_mode == "About Project":
+        st.subheader("About Dataset")
+        st.text("This dataset contains images of the following food items:")
+        st.code("Cuisines- ")
+        st.code("Desserts- ")
+        st.subheader("Content")
+        st.text("This dataset contains three folders:")
+        st.text("1. train (100 images each)")
+        st.text("2. test (10 images each)")
+        st.text("3. validation (10 images each)")
+    #end of about project
+    
+    #start of prediction page
+    elif app_mode == "Prediction":
+        st.header("Model Prediction")
+        test_image = st.file_uploader("Choose an Image:")
+        
+        if test_image is not None:
+            st.markdown("<h3 style='text-align: left; color: green; font-size: 18px;'>Your Uploaded Image</h3>", unsafe_allow_html=True)
+            st.image(test_image, width=400, use_column_width=False)  # Adjust the width as needed
+            
+            if st.button("Show Image"):
+                st.image(test_image, width=400, use_column_width=False)  # Adjust the width as needed
+
+            if st.button("Predict"):
+                progress_text = "Prediction in progress. Please wait."
+                my_bar = st.progress(0, text=progress_text)
+
+                for percent_complete in range(100):
+                    time.sleep(0.01)
+                    my_bar.progress(percent_complete + 1, text=progress_text)
+                time.sleep(1)
+                my_bar.empty()
+                #st.success("Our Prediction")
+                class_index, confidence = model_prediction(test_image)
+                # Reading Labels
+                with open("labels.txt") as f:
+                    content = f.readlines()
+                label = [i[:-1] for i in content]
+                st.success(f"Model predicts it's a {label[class_index]} with {confidence:.2f}% confidence.")
+    #end of prediction page
 if __name__ == "__main__":
-    st.write("Streamlit app for model training visualization")
+    main()
+
