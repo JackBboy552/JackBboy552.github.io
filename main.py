@@ -117,7 +117,7 @@ def main():
     st.text_input("What food's tastes do you want? (ex: sweet and sour; salty, sour, and spicy)", key="name")
     user_taste_vector = get_taste(st.session_state.name)
 
-    data = pd.read_csv("https://raw.githubusercontent.com/Rangga1708/Food-Recommender/main/Food%20Taste.csv")
+    data = pd.read_csv("https://raw.githubusercontent.com/JackBboy552/SUTCrave/main/FoodTaste.csv")
     data["taste_vector"] = data["taste"].map(get_taste)
     data["similarity"] = data["taste_vector"].map(similarity)
     filtered_data = data[data["similarity"] > 0]
