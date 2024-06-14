@@ -50,14 +50,19 @@ def main():
         
     # Tensorflow Model Prediction
     def model_prediction(test_image):
-        model = tf.keras.models.load_model("trained_model.h5")
-        image = tf.keras.preprocessing.image.load_img(test_image, target_size=(64, 64))
-        input_arr = tf.keras.preprocessing.image.img_to_array(image)
-        input_arr = np.array([input_arr])  # Convert single image to batch
-        predictions = model.predict(input_arr)
-        class_index = np.argmax(predictions)
-        confidence = np.max(predictions) * 100  # Confidence score in percentage
-        return class_index, confidence
+        try:
+            model = tf.keras.models.load_model("trained_model.h5")
+            image = Image.open(test_image)
+            image = image.resize((64, 64))
+            input_arr = tf.keras.preprocessing.image.img_to_array(image)
+            input_arr = np.array([input_arr])  # Convert single image to batch
+            predictions = model.predict(input_arr)
+            class_index = np.argmax(predictions)
+            confidence = np.max(predictions) * 100  # Confidence score in percentage
+            return class_index, confidence
+        except Exception as e:
+            st.error(f"Error during prediction: {e}")
+            return None, None
 
     # Prediction Section
     st.header("Model Prediction")
@@ -66,9 +71,6 @@ def main():
     if test_image is not None:
         st.markdown("<h3 style='text-align: left; color: green; font-size: 18px;'>Your Uploaded Image</h3>", unsafe_allow_html=True)
         st.image(test_image, width=400, use_column_width=False)  # Adjust the width as needed
-
-        if st.button("Show Image"):
-            st.image(test_image, width=400, use_column_width=False)  # Adjust the width as needed
 
         if st.button("Predict"):
             progress_text = "Prediction in progress. Please wait."
@@ -82,48 +84,16 @@ def main():
             
             class_index, confidence = model_prediction(test_image)
             
-            labels_path = "Labels.txt"
-            if os.path.exists(labels_path):
-                with open(labels_path) as f:
-                    content = f.readlines()
-                label = [i.strip() for i in content]
-                st.success(f"Category: {label[class_index]}")
-                st.success(f"Accuracy: {confidence:.2f}% ")
-            else:
-                st.error("Labels file not found. Please ensure 'labels.txt' is in the directory.")
-                
-    def get_taste(x):
-        # Convert string of tastes to vector
-        tastes = ["sweet", "salty", "sour", "bitter", "spicy"]
-        taste_result = []
-        
-        for taste in tastes:
-            if taste in x:
-                taste_result.append(1)
-            else:
-                taste_result.append(0)
-        
-        return taste_result
-
-    def similarity(x):
-        # Calculate similarity of user's taste vector and food's taste vector on database
-        taste = np.array(x)
-        user_taste = np.array(user_taste_vector)
-        
-        return np.dot(taste, user_taste)
-
-    st.header("Food Recommender Based on Taste")
-    st.write("Available food taste: sweet, salty, sour, bitter, spicy")
-    st.text_input("What food's tastes do you want? (ex: sweet and sour; salty, sour, and spicy)", key="name")
-    user_taste_vector = get_taste(st.session_state.name)
-
-    data = pd.read_csv("https://raw.githubusercontent.com/JackBboy552/SUTCrave/main/FoodTaste.csv")
-    data["taste_vector"] = data["taste"].map(get_taste)
-    data["similarity"] = data["taste_vector"].map(similarity)
-    filtered_data = data[data["similarity"] > 0]
-    filtered_data = filtered_data.sort_values(by = "similarity", ascending = False)
-    filtered_data = filtered_data.reset_index(drop = True)
-    filtered_data = filtered_data.drop(columns = ["taste_vector", "similarity"])
-
+            if class_index is not None:
+                labels_path = "Labels.txt"
+                if os.path.exists(labels_path):
+                    with open(labels_path) as f:
+                        content = f.readlines()
+                    label = [i.strip() for i in content]
+                    st.success(f"Category: {label[class_index]}")
+                    st.success(f"Accuracy: {confidence:.2f}% ")
+                else:
+                    st.error("Labels file not found. Please ensure 'labels.txt' is in the directory.")
+                    
 if __name__ == "__main__":
     main()
