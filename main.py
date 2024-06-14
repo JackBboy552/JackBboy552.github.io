@@ -2,6 +2,7 @@ import streamlit as st
 import tensorflow as tf
 import numpy as np
 from PIL import Image
+import pandas as pd
 import time
 import os
 
@@ -119,7 +120,7 @@ def main():
             
             return np.dot(taste, user_taste)
 
-        data = pd.read_csv("https://raw.githubusercontent.com/Rangga1708/Food-Recommender/main/Food%20Taste.csv")
+        data = pd.read_csv("https://raw.githubusercontent.com/JackBboy552/SUTCrave/main/FoodTaste.csv")
         data["taste_vector"] = data["taste"].map(get_taste)
         data["similarity"] = data["taste_vector"].map(similarity)
         filtered_data = data[data["similarity"] > 0]
