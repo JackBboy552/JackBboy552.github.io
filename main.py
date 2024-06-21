@@ -47,47 +47,7 @@ def main():
     # Load and display loss plot
     if os.path.exists(Visual_plot):
         st.image(Visual_plot, caption='Training and Validation Loss')
-    
-    # Taste Recommender Section
-    st.header("Food Recommender Based on Taste")
-    st.write("Available food taste: sweet, salty, sour, bitter, spicy")
-    user_tastes = st.text_input("What food's tastes do you want? (ex: sweet and sour; salty, sour, and spicy)", key="name")
-
-    def get_taste(x):
-        # Convert string of tastes to vector
-        tastes = ["sweet", "salty", "sour", "bitter", "spicy"]
-        taste_result = []
         
-        for taste in tastes:
-            if taste in x:
-                taste_result.append(1)
-            else:
-                taste_result.append(0)
-        
-        return taste_result
-
-    if user_tastes:
-        user_taste_vector = get_taste(user_tastes)
-
-        def similarity(x):
-            # Calculate similarity of user's taste vector and food's taste vector on database
-            taste = np.array(x)
-            user_taste = np.array(user_taste_vector)
-            
-            return np.dot(taste, user_taste)
-
-        data = pd.read_csv("https://raw.githubusercontent.com/JackBboy552/SUTCrave/main/FoodTaste.csv")
-        data["taste_vector"] = data["taste"].map(get_taste)
-        data["similarity"] = data["taste_vector"].map(similarity)
-        filtered_data = data[data["similarity"] > 0]
-        filtered_data = filtered_data.sort_values(by = "similarity", ascending = False)
-        filtered_data = filtered_data.reset_index(drop = True)
-        filtered_data = filtered_data.drop(columns = ["taste_vector", "similarity"])
-
-        st.dataframe(filtered_data)
-    else:
-        st.warning("Please enter your taste preferences.")
-            
     # Tensorflow Model Prediction
     def model_prediction(test_image):
         # Load both models
@@ -134,23 +94,15 @@ def main():
             
             category_index, category_confidence, cuisine_index, cuisine_confidence = model_prediction(test_image)
             
-            category_labels_path = "Category_Labels.txt"
-            cuisine_labels_path = "Cuisine_Labels.txt"
-            if os.path.exists(category_labels_path) and os.path.exists(cuisine_labels_path):
-                with open(category_labels_path) as f:
-                    category_content = f.readlines()
-                category_label = [i.strip() for i in category_content]
-
-                with open(cuisine_labels_path) as f:
-                    cuisine_content = f.readlines()
-                cuisine_label = [i.strip() for i in cuisine_content]
-
-                st.success(f"Category: {category_label[category_index]}")
-                st.success(f"Category Confidence: {category_confidence:.2f}% ")
-                st.success(f"Cuisine: {cuisine_label[cuisine_index]}")
-                st.success(f"Cuisine Confidence: {cuisine_confidence:.2f}% ")
+            labels_path = "Labels.txt"
+            if os.path.exists(labels_path):
+                with open(labels_path) as f:
+                    content = f.readlines()
+                label = [i.strip() for i in content]
+                st.success(f"Model predicts it's a {label[class_index]}")
+                st.success(f"Accuracy: {confidence:.2f}% ")
             else:
-                st.error("Labels file not found. Please ensure 'Category_Labels.txt' and 'Cuisine_Labels.txt' are in the directory.")
-                
+                st.error("Labels file not found. Please ensure 'labels.txt' is in the directory.")
+
 if __name__ == "__main__":
     main()
