@@ -6,6 +6,23 @@ import pandas as pd
 import time
 import os
 
+# Define the RandomWidth custom layer
+class RandomWidth(tf.keras.layers.Layer):
+    def __init__(self, width_factor=0.2, **kwargs):
+        super(RandomWidth, self).__init__(**kwargs)
+        self.width_factor = width_factor
+
+    def call(self, inputs, training=None):
+        if training:
+            # Calculate random width adjustment
+            width_offset = tf.random.uniform(shape=[tf.shape(inputs)[0], 1, 1, 1], minval=-self.width_factor, maxval=self.width_factor)
+            # Apply random width adjustment
+            inputs = tf.image.resize(inputs, tf.shape(inputs)[1:3] + tf.shape(inputs)[2:4] * width_offset)
+        return inputs
+
+# Register the custom layer for model loading
+tf.keras.utils.get_custom_objects()["RandomWidth"] = RandomWidth
+
 def main():
     # Set page configuration
     st.set_page_config(page_title='AI Food Recognize System', page_icon='🍽️')
@@ -14,7 +31,7 @@ def main():
     st.title('🍽️ AI Food Recognize System')
     
     # Page title with GIF header
-    gif_path = "SuTCraveposter.gif"  # Path to your GIF file
+    gif_path = "img/SuTCraveposter.gif"  # Path to your GIF file
     st.image(gif_path, use_column_width=True)
 
     # About this app
@@ -48,7 +65,7 @@ def main():
     if os.path.exists(Visual_plot):
         st.image(Visual_plot, caption='Training and Validation Loss')
     
-     # Taste Recommender Section
+    # Taste Recommender Section
     st.header("Food Recommender Based on Taste")
     st.write("Available food taste: sweet, salty, sour, bitter, spicy")
     user_tastes = st.text_input("What food's tastes do you want? (ex: sweet and sour; salty, sour, and spicy)", key="name")
@@ -89,15 +106,20 @@ def main():
         st.warning("Please enter your taste preferences.")
             
     # Tensorflow Model Prediction
-    def model_prediction(test_image):
-        model = tf.keras.models.load_model("trained_model_category.h5")
-        image = tf.keras.preprocessing.image.load_img(test_image, target_size=(64, 64))
-        input_arr = tf.keras.preprocessing.image.img_to_array(image)
-        input_arr = np.array([input_arr])  # Convert single image to batch
+    def model_prediction(test_image, model_path, labels_path):
+        model = tf.keras.models.load_model(model_path, custom_objects={"RandomWidth": RandomWidth})
+        image = Image.open(test_image)
+        image = image.resize((64, 64))  # Resize image to match model input size
+        input_arr = np.expand_dims(np.array(image), axis=0)  # Convert image to numpy array and add batch dimension
         predictions = model.predict(input_arr)
         class_index = np.argmax(predictions)
         confidence = np.max(predictions) * 100  # Confidence score in percentage
-        return class_index, confidence
+        
+        # Load labels
+        with open(labels_path) as f:
+            labels = f.read().splitlines()
+        
+        return labels[class_index], confidence
 
     # Prediction Section
     st.header("Model Prediction")
@@ -120,17 +142,18 @@ def main():
             time.sleep(1)
             my_bar.empty()
             
-            class_index, confidence = model_prediction(test_image)
+            # Predict category
+            category_model_path = "trained_model_category.h5"
+            category_labels_path = "Category_Labels.txt"
+            category_label, category_confidence = model_prediction(test_image, category_model_path, category_labels_path)
             
-            labels_path = "Category_Labels.txt"
-            if os.path.exists(labels_path):
-                with open(labels_path) as f:
-                    content = f.readlines()
-                label = [i.strip() for i in content]
-                st.success(f"Category: {label[class_index]}")
-                st.success(f"Accuracy: {confidence:.2f}% ")
-            else:
-                st.error("Labels file not found. Please ensure 'labels.txt' is in the directory.")
-                
+            # Predict cuisine
+            cuisine_model_path = "trained_model_cuisine.h5"
+            cuisine_labels_path = "Cuisine_Labels.txt"
+            cuisine_label, cuisine_confidence = model_prediction(test_image, cuisine_model_path, cuisine_labels_path)
+            
+            st.success(f"Category: {category_label}, Accuracy: {category_confidence:.2f}% ")
+            st.success(f"Cuisine: {cuisine_label}, Accuracy: {cuisine_confidence:.2f}% ")
+
 if __name__ == "__main__":
     main()
