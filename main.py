@@ -90,7 +90,13 @@ def main():
             
     # Tensorflow Model Prediction
     def model_prediction(test_image):
-        model = tf.keras.models.load_model("trained_model_category.h5")
+        model_path = "trained_model_category.h5"
+        if os.path.exists(model_path):
+            model = tf.keras.models.load_model(model_path)
+        else:
+            st.error("Model file not found. Please ensure 'trained_model_category.h5' is in the directory.")
+            return None, None
+        
         image = tf.keras.preprocessing.image.load_img(test_image, target_size=(64, 64))
         input_arr = tf.keras.preprocessing.image.img_to_array(image)
         input_arr = np.array([input_arr])  # Convert single image to batch
@@ -122,15 +128,16 @@ def main():
             
             class_index, confidence = model_prediction(test_image)
             
-            labels_path = "Labels.txt"
-            if os.path.exists(labels_path):
-                with open(labels_path) as f:
-                    content = f.readlines()
-                label = [i.strip() for i in content]
-                st.success(f"Category: {label[class_index]}")
-                st.success(f"Accuracy: {confidence:.2f}% ")
-            else:
-                st.error("Labels file not found. Please ensure 'labels.txt' is in the directory.")
+            if class_index is not None:
+                labels_path = "Labels.txt"
+                if os.path.exists(labels_path):
+                    with open(labels_path) as f:
+                        content = f.readlines()
+                    label = [i.strip() for i in content]
+                    st.success(f"Category: {label[class_index]}")
+                    st.success(f"Accuracy: {confidence:.2f}% ")
+                else:
+                    st.error("Labels file not found. Please ensure 'Labels.txt' is in the directory.")
                 
 if __name__ == "__main__":
     main()
