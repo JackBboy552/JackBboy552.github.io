@@ -79,8 +79,8 @@ def main():
         st.markdown("<h3 style='text-align: left; color: green; font-size: 18px;'>Your Uploaded Image</h3>", unsafe_allow_html=True)
         st.image(test_image, width=400, use_column_width=False)  # Adjust the width as needed
 
-        if st.button("Show Image"):
-            st.image(test_image, width=400, use_column_width=False)  # Adjust the width as needed
+        # if st.button("Show Image"):
+        #     st.image(test_image, width=400, use_column_width=False)  # Adjust the width as needed
 
         if st.button("Predict"):
             progress_text = "Prediction in progress. Please wait."
@@ -94,15 +94,23 @@ def main():
             
             category_index, category_confidence, cuisine_index, cuisine_confidence = model_prediction(test_image)
             
-            labels_path = "Labels.txt"
-            if os.path.exists(labels_path):
-                with open(labels_path) as f:
-                    content = f.readlines()
-                label = [i.strip() for i in content]
-                st.success(f"Model predicts it's a {label[class_index]}")
-                st.success(f"Accuracy: {confidence:.2f}% ")
+            category_labels_path = "Category_Labels.txt"
+            cuisine_labels_path = "Cuisine_Labels.txt"
+            if os.path.exists(category_labels_path) and os.path.exists(cuisine_labels_path):
+                with open(category_labels_path) as f:
+                    category_content = f.readlines()
+                category_label = [i.strip() for i in category_content]
+
+                with open(cuisine_labels_path) as f:
+                    cuisine_content = f.readlines()
+                cuisine_label = [i.strip() for i in cuisine_content]
+
+                st.success(f"Category: {category_label[category_index]}")
+                st.success(f"Category Confidence: {category_confidence:.2f}% ")
+                st.success(f"Cuisine: {cuisine_label[cuisine_index]}")
+                st.success(f"Cuisine Confidence: {cuisine_confidence:.2f}% ")
             else:
-                st.error("Labels file not found. Please ensure 'labels.txt' is in the directory.")
+                st.error("Labels file not found. Please ensure 'Category_Labels.txt' and 'Cuisine_Labels.txt' are in the directory.")
 
 if __name__ == "__main__":
     main()
