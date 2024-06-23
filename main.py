@@ -1,10 +1,40 @@
 import streamlit as st
 import tensorflow as tf
 import numpy as np
-from PIL import Image
 import pandas as pd
 import time
 import os
+import requests
+
+# Define your custom layers with additional parameters
+class RandomWidth(tf.keras.layers.Layer):
+    def __init__(self, factor=0.2, interpolation='bilinear', seed=None, **kwargs):
+        super(RandomWidth, self).__init__(**kwargs)
+        self.factor = factor
+        self.interpolation = interpolation
+        self.seed = seed
+
+    def call(self, inputs, training=False):
+        if training:
+            width_factor = tf.random.uniform([], 1 - self.factor, 1 + self.factor, seed=self.seed)
+            return tf.image.resize(inputs, [inputs.shape[1], int(inputs.shape[2] * width_factor)], method=self.interpolation)
+        return inputs
+
+class RandomHeight(tf.keras.layers.Layer):
+    def __init__(self, factor=0.2, interpolation='bilinear', seed=None, **kwargs):
+        super(RandomHeight, self).__init__(**kwargs)
+        self.factor = factor
+        self.interpolation = interpolation
+        self.seed = seed
+
+    def call(self, inputs, training=False):
+        if training:
+            height_factor = tf.random.uniform([], 1 - self.factor, 1 + self.factor, seed=self.seed)
+            return tf.image.resize(inputs, [int(inputs.shape[1] * height_factor), inputs.shape[2]], method=self.interpolation)
+        return inputs
+
+# URL of the model file on GitHub or Google Drive
+MODEL_URL = 'https://github.com/JackBboy552/SUTCrave/raw/main/trained_model_category.h5'
 
 def main():
     # Set page configuration
@@ -88,15 +118,18 @@ def main():
     else:
         st.warning("Please enter your taste preferences.")
             
+    MODEL_PATH = 'trained_model_Category.h5'
+    if not os.path.exists(MODEL_PATH):
+        with st.spinner("Downloading model..."):
+            response = requests.get(MODEL_URL)
+            with open(MODEL_PATH, 'wb') as file:
+                file.write(response.content)
+                
     # Tensorflow Model Prediction
     def model_prediction(test_image):
-        model_path = "trained_model_category.h5"
-        if os.path.exists(model_path):
-            model = tf.keras.models.load_model(model_path)
-        else:
-            st.error("Model file not found. Please ensure 'trained_model_category.h5' is in the directory.")
-            return None, None
-        
+        # Load the model with custom layers
+        with tf.keras.utils.custom_object_scope({'RandomWidth': RandomWidth, 'RandomHeight': RandomHeight}):
+            model = tf.keras.models.load_model(MODEL_PATH)
         image = tf.keras.preprocessing.image.load_img(test_image, target_size=(64, 64))
         input_arr = tf.keras.preprocessing.image.img_to_array(image)
         input_arr = np.array([input_arr])  # Convert single image to batch
@@ -113,8 +146,8 @@ def main():
         st.markdown("<h3 style='text-align: left; color: green; font-size: 18px;'>Your Uploaded Image</h3>", unsafe_allow_html=True)
         st.image(test_image, width=400, use_column_width=False)  # Adjust the width as needed
 
-        if st.button("Show Image"):
-            st.image(test_image, width=400, use_column_width=False)  # Adjust the width as needed
+        # if st.button("Show Image"):
+        #     st.image(test_image, width=400, use_column_width=False)  # Adjust the width as needed
 
         if st.button("Predict"):
             progress_text = "Prediction in progress. Please wait."
@@ -129,7 +162,7 @@ def main():
             class_index, confidence = model_prediction(test_image)
             
             if class_index is not None:
-                labels_path = "Labels.txt"
+                labels_path = "Category_Labels.txt"
                 if os.path.exists(labels_path):
                     with open(labels_path) as f:
                         content = f.readlines()
@@ -137,7 +170,9 @@ def main():
                     st.success(f"Category: {label[class_index]}")
                     st.success(f"Accuracy: {confidence:.2f}% ")
                 else:
-                    st.error("Labels file not found. Please ensure 'Labels.txt' is in the directory.")
+                    st.error("Class index out of range.")
+            else:
+                st.error("Labels file not found. Please ensure 'Labels.txt' is in the directory.")
                 
 if __name__ == "__main__":
     main()
