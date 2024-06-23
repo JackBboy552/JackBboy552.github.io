@@ -42,6 +42,7 @@ def main():
     
     # Page title
     st.title('CraveAI🍽️')
+    st.header('AI-driven food identification and taste-based recommendation system ')
     
     # Page title with GIF header
     gif_path = "img/SuTCraveposter.gif"  # Path to your GIF file
