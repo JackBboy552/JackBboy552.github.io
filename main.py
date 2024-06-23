@@ -38,10 +38,10 @@ MODEL_URL = 'https://github.com/JackBboy552/SUTCrave/raw/main/trained_model_cate
 
 def main():
     # Set page configuration
-    st.set_page_config(page_title='AI Food Recognize System', page_icon='🍽️')
+    st.set_page_config(page_title='CraveAI', page_icon='🍽️')
     
     # Page title
-    st.title('🍽️ AI Food Recognize System')
+    st.title('CraveAI🍽️')
     
     # Page title with GIF header
     gif_path = "img/SuTCraveposter.gif"  # Path to your GIF file
@@ -73,7 +73,7 @@ def main():
     st.header("Training and Validation Plots")
 
     # Load and display accuracy plot
-    Visual_plot = "loss_plot.png"
+    Visual_plot = "img/loss_plot.png"
     # Load and display loss plot
     if os.path.exists(Visual_plot):
         st.image(Visual_plot, caption='Training and Validation Loss')
@@ -118,7 +118,7 @@ def main():
     else:
         st.warning("Please enter your taste preferences.")
             
-    MODEL_PATH = 'trained_model_Category.h5'
+    MODEL_PATH = 'trained_model.h5'
     if not os.path.exists(MODEL_PATH):
         with st.spinner("Downloading model..."):
             response = requests.get(MODEL_URL)
