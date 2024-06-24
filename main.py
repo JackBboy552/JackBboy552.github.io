@@ -5,6 +5,7 @@ import pandas as pd
 import time
 import os
 import requests
+from io import BytesIO
 
 def main():
     # Set page configuration
@@ -49,7 +50,7 @@ def main():
     if os.path.exists(Visual_plot):
         st.image(Visual_plot, caption='Training and Validation Loss')
     
-     # Taste Recommender Section
+    # Taste Recommender Section
     st.header("Food Recommender Based on Taste")
     st.write("Available food taste: sweet, salty, sour, bitter, spicy")
     user_tastes = st.text_input("What food's tastes do you want? (ex: sweet and sour; salty, sour, and spicy)", key="name")
@@ -92,7 +93,7 @@ def main():
     # Tensorflow Model Prediction
     def model_prediction(test_image):
         # Load the model with custom layers
-        model = tf.keras.models.load_model("trained_model.h5")
+        model = tf.keras.models.load_model("trained_model_mobilenetv2.h5")
         image = tf.keras.preprocessing.image.load_img(test_image, target_size=(64, 64))
         input_arr = tf.keras.preprocessing.image.img_to_array(image)
         input_arr = np.array([input_arr])  # Convert single image to batch
@@ -119,7 +120,7 @@ def main():
             for percent_complete in range(100):
                 time.sleep(0.01)
                 my_bar.progress(percent_complete + 1, text=progress_text)
-            time.sleep(1)
+            
             my_bar.empty()
             
             class_index, confidence = model_prediction(test_image)
