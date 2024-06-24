@@ -41,7 +41,7 @@ def main():
     st.set_page_config(page_title='CraveAI', page_icon='🍽️')
     
     # Page title
-    st.title('CraveAI🍽️')
+    # st.title('CraveAI🍽️')
     st.header('AI-driven food identification and taste-based recommendation system ')
     
     # Page title with GIF header
