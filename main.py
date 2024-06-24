@@ -45,7 +45,7 @@ def main():
     st.header('AI-driven food identification and taste-based recommendation system ')
     
     # Page title with GIF header
-    gif_path = "img/SuTCraveposter.gif"  # Path to your GIF file
+    gif_path = "img/CraveAI.gif"  # Path to your GIF file
     st.image(gif_path, use_column_width=True)
 
     # About this app
