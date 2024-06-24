@@ -119,7 +119,7 @@ def main():
     else:
         st.warning("Please enter your taste preferences.")
             
-    MODEL_PATH = 'trained_model.h5'
+    MODEL_PATH = 'trained_model_category.h5'
     if not os.path.exists(MODEL_PATH):
         with st.spinner("Downloading model..."):
             response = requests.get(MODEL_URL)
