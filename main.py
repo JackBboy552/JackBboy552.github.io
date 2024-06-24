@@ -34,7 +34,7 @@ class RandomHeight(tf.keras.layers.Layer):
         return inputs
 
 # URL of the model file on GitHub or Google Drive
-MODEL_URL = 'https://github.com/JackBboy552/SUTCrave/raw/main/trained_model_category.h5'
+MODEL_URL = 'https://drive.google.com/uc?export=download&id=1njmx9EULUJW2wB20f4HVHEGQPbvDM_4M'
 
 def main():
     # Set page configuration
