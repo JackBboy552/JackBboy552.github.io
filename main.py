@@ -6,36 +6,6 @@ import time
 import os
 import requests
 
-# Define your custom layers with additional parameters
-class RandomWidth(tf.keras.layers.Layer):
-    def __init__(self, factor=0.2, interpolation='bilinear', seed=None, **kwargs):
-        super(RandomWidth, self).__init__(**kwargs)
-        self.factor = factor
-        self.interpolation = interpolation
-        self.seed = seed
-
-    def call(self, inputs, training=False):
-        if training:
-            width_factor = tf.random.uniform([], 1 - self.factor, 1 + self.factor, seed=self.seed)
-            return tf.image.resize(inputs, [inputs.shape[1], int(inputs.shape[2] * width_factor)], method=self.interpolation)
-        return inputs
-
-class RandomHeight(tf.keras.layers.Layer):
-    def __init__(self, factor=0.2, interpolation='bilinear', seed=None, **kwargs):
-        super(RandomHeight, self).__init__(**kwargs)
-        self.factor = factor
-        self.interpolation = interpolation
-        self.seed = seed
-
-    def call(self, inputs, training=False):
-        if training:
-            height_factor = tf.random.uniform([], 1 - self.factor, 1 + self.factor, seed=self.seed)
-            return tf.image.resize(inputs, [int(inputs.shape[1] * height_factor), inputs.shape[2]], method=self.interpolation)
-        return inputs
-
-# URL of the model file on GitHub or Google Drive
-MODEL_URL = 'https://drive.google.com/uc?export=download&id=1njmx9EULUJW2wB20f4HVHEGQPbvDM_4M'
-
 def main():
     # Set page configuration
     st.set_page_config(page_title='CraveAI', page_icon='🍽️')
@@ -118,19 +88,11 @@ def main():
         st.dataframe(filtered_data)
     else:
         st.warning("Please enter your taste preferences.")
-            
-    MODEL_PATH = 'trained_model_category.h5'
-    if not os.path.exists(MODEL_PATH):
-        with st.spinner("Downloading model..."):
-            response = requests.get(MODEL_URL)
-            with open(MODEL_PATH, 'wb') as file:
-                file.write(response.content)
                 
     # Tensorflow Model Prediction
     def model_prediction(test_image):
         # Load the model with custom layers
-        with tf.keras.utils.custom_object_scope({'RandomWidth': RandomWidth, 'RandomHeight': RandomHeight}):
-            model = tf.keras.models.load_model(MODEL_PATH)
+        model = tf.keras.models.load_model("trained_model_category.h5")
         image = tf.keras.preprocessing.image.load_img(test_image, target_size=(64, 64))
         input_arr = tf.keras.preprocessing.image.img_to_array(image)
         input_arr = np.array([input_arr])  # Convert single image to batch
@@ -162,16 +124,14 @@ def main():
             
             class_index, confidence = model_prediction(test_image)
             
-            if class_index is not None:
-                labels_path = "Category_Labels.txt"
-                if os.path.exists(labels_path):
-                    with open(labels_path) as f:
-                        content = f.readlines()
-                    label = [i.strip() for i in content]
-                    st.success(f"Category: {label[class_index]}")
-                    st.success(f"Accuracy: {confidence:.2f}% ")
-                else:
-                    st.error("Class index out of range.")
+            labels_path = "Category_Labels.txt"
+            if os.path.exists(labels_path):
+                with open(labels_path) as f:
+                    content = f.readlines()
+                label = [i.strip() for i in content]
+                st.success(f"Category: {label[class_index]}")
+                st.success(f"Accuracy: {confidence:.2f}% ")
+                    
             else:
                 st.error("Labels file not found. Please ensure 'Labels.txt' is in the directory.")
                 
