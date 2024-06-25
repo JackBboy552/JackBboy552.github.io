@@ -3,4 +3,6 @@ tensorflow
 numpy
 matplotlib
 requests
-cv2
+opencv-python-headless
+Pillow
+pandas
