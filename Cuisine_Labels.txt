@@ -1,6 +1,0 @@
-chinese
-indian
-japanese
-malay
-philippine
-thai
