@@ -145,7 +145,7 @@ def main():
         st.image(cuisine_image, caption='', use_column_width=True)
         st.markdown("<h3 style='text-align: left; color: green; font-size: 18px;'>Your Uploaded Image</h3>", unsafe_allow_html=True)
 
-        if st.button("Predict Cuisine"):
+        if st.button("Predict"):
             with st.spinner('Classifying...'):
                 # Rebuild the MobileNetV2 model structure
                 base_model = tf.keras.applications.MobileNetV2(weights=None, include_top=False, input_shape=(224, 224, 3))
