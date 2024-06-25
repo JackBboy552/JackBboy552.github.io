@@ -1,6 +1,7 @@
 import streamlit as st
 import tensorflow as tf
 import numpy as np
+import cv2
 from PIL import Image
 import pandas as pd
 import time
@@ -24,7 +25,7 @@ def main():
 
         st.markdown('**How to use the app?**')
         st.warning('1. **Prediction Section**: Upload an image, and the app will predict the category of the food item with a confidence score. The app also displays the uploaded image and the predicted category with accuracy.\n'
-                   '2. **Taste Recommender**: The taste recommender feature allows users to input their preferred tastes (sweet, salty, sour, bitter, spicy) and provides food recommendations based on a pre-defined taste profile dataset.')
+               '2. **Taste Recommender**: The taste recommender feature allows users to input their preferred tastes (sweet, salty, sour, bitter, spicy) and provides food recommendations based on a pre-defined taste profile dataset.')
 
         st.markdown('**Under the hood**')
         st.markdown('Datasets:')
@@ -87,37 +88,16 @@ def main():
         st.warning("Please enter your taste preferences.")
 
     # Tensorflow Model Prediction
-    def model_prediction(test_image, model_path, input_size, num_classes, labels_path):
-        # Rebuild the MobileNetV2 model structure
-        base_model = tf.keras.applications.MobileNetV2(weights=None, include_top=False, input_shape=input_size)
-
-        # Add custom layers on top of it
-        x = base_model.output
-        x = tf.keras.layers.GlobalAveragePooling2D()(x)
-        x = tf.keras.layers.Dense(512, activation='relu')(x)
-        x = tf.keras.layers.Dropout(0.5)(x)
-        x = tf.keras.layers.Dense(256, activation='relu')(x)
-        x = tf.keras.layers.Dropout(0.5)(x)
-        predictions = tf.keras.layers.Dense(num_classes, activation='softmax')(x)  # Number of classes
-
-        # This is the model we will train
-        model = tf.keras.models.Model(inputs=base_model.input, outputs=predictions)
-
-        # Load the trained weights
-        model.load_weights(model_path)
-
-        image = tf.keras.preprocessing.image.load_img(test_image, target_size=input_size[:2])
+    def model_prediction(test_image):
+        # Load the model with custom layers
+        model = tf.keras.models.load_model("trained_model.h5")
+        image = tf.keras.preprocessing.image.load_img(test_image, target_size=(64, 64))
         input_arr = tf.keras.preprocessing.image.img_to_array(image)
         input_arr = np.array([input_arr])  # Convert single image to batch
         predictions = model.predict(input_arr)
         class_index = np.argmax(predictions)
         confidence = np.max(predictions) * 100  # Confidence score in percentage
-
-        with open(labels_path) as f:
-            content = f.readlines()
-        labels = [i.strip() for i in content]
-
-        return labels[class_index], confidence
+        return class_index, confidence
 
     # Prediction Section
     st.header("Model Prediction")
@@ -140,14 +120,79 @@ def main():
 
             my_bar.empty()
 
-            category_label, category_confidence = model_prediction(test_image, 'trained_model_mobilenetv2.h5', (64, 64, 3), 4, 'Category_Labels.txt')
-            cuisine_label, cuisine_confidence = model_prediction(test_image, 'trained_model_mobilenetv2_cuisine.h5', (224, 224, 3), 6, 'CuisineLabels.txt')
+            class_index, confidence = model_prediction(test_image)
 
-            st.success(f"Category: {category_label}")
-            st.success(f"Accuracy: {category_confidence:.2f}%")
-            st.success(f"Cuisine: {cuisine_label}")
-            st.success(f"Accuracy: {cuisine_confidence:.2f}%")
+            labels_path = "Category_Labels.txt"
+            if os.path.exists(labels_path):
+                with open(labels_path) as f:
+                    content = f.readlines()
+                label = [i.strip() for i in content]
+                st.success(f"Category: {label[class_index]}")
+                st.success(f"Accuracy: {confidence:.2f}% ")
+            else:
+                st.error("Labels file not found. Please ensure 'Labels.txt' is in the directory.")
 
+    # Cuisine Prediction Section
+    st.header("Cuisine Prediction with MobileNetV2")
+    st.write("Upload an image of a dish and the model will predict the cuisine type.")
+
+    uploaded_file = st.file_uploader("Choose an image for cuisine prediction...", type=["jpg", "jpeg", "png"])
+
+    if uploaded_file is not None:
+        cuisine_image = Image.open(uploaded_file)
+        
+        # Display the uploaded image
+        st.image(cuisine_image, caption='', use_column_width=True)
+        st.markdown("<h3 style='text-align: left; color: green; font-size: 18px;'>Your Uploaded Image</h3>", unsafe_allow_html=True)
+
+        if st.button("Predict Cuisine"):
+            with st.spinner('Classifying...'):
+                # Rebuild the MobileNetV2 model structure
+                base_model = tf.keras.applications.MobileNetV2(weights=None, include_top=False, input_shape=(224, 224, 3))
+
+                # Add custom layers on top of it
+                x = base_model.output
+                x = tf.keras.layers.GlobalAveragePooling2D()(x)
+                x = tf.keras.layers.Dense(512, activation='relu')(x)
+                x = tf.keras.layers.Dropout(0.5)(x)
+                x = tf.keras.layers.Dense(256, activation='relu')(x)
+                x = tf.keras.layers.Dropout(0.5)(x)
+                predictions = tf.keras.layers.Dense(6, activation='softmax')(x)  # Assuming 6 different cuisine types
+
+                # This is the model we will train
+                cuisine_model = tf.keras.models.Model(inputs=base_model.input, outputs=predictions)
+
+                # Load the trained weights
+                cuisine_model.load_weights('trained_model_mobilenetv2_cuisine.h5')
+
+                # Define cuisine class labels
+                labels_path = 'CuisineLabels.txt'
+                with open(labels_path) as f:
+                    cuisine_names = [line.strip() for line in f.readlines()]
+
+                # Function to preprocess and predict on a single image
+                def predict_single_image(image, model, cuisine_names):
+                    img = cv2.cvtColor(np.array(image), cv2.COLOR_BGR2RGB)
+                    img = cv2.resize(img, (224, 224))  # Resize to match MobileNetV2 input size
+                    img = img / 255.0  # Normalize pixel values
+
+                    # Reshape and expand dimensions to match model input
+                    img = np.expand_dims(img, axis=0)
+
+                    # Predict
+                    predictions = model.predict(img)
+                    predicted_cuisine_index = np.argmax(predictions)
+                    predicted_cuisine = cuisine_names[predicted_cuisine_index]
+                    confidence = np.max(predictions) * 100
+
+                    return predicted_cuisine, confidence
+
+                # Make prediction
+                predicted_cuisine, confidence = predict_single_image(cuisine_image, cuisine_model, cuisine_names)
+
+                # Display the prediction
+                st.success(f'Cuisine: {predicted_cuisine}')
+                st.success(f'Accuracy: {confidence:.2f}%')
 
 if __name__ == "__main__":
     main()
