@@ -110,7 +110,7 @@ def main():
         st.markdown("<h3 style='text-align: left; color: green; font-size: 18px;'>Your Uploaded Image</h3>", unsafe_allow_html=True)
         st.image(image, width=400, use_column_width=False)
 
-        if st.button("Predict Category", key="category_predict"):
+        if st.button("Predict", key="category_predict"):
             progress_text = "Prediction in progress. Please wait."
             my_bar = st.progress(0, text=progress_text)
 
@@ -145,8 +145,8 @@ def main():
         st.image(cuisine_image, caption='Uploaded Image for Cuisine Prediction.', use_column_width=True)
         st.markdown("<h3 style='text-align: left; color: green; font-size: 18px;'>Your Uploaded Image</h3>", unsafe_allow_html=True)
 
-        if st.button("Predict Cuisine", key="cuisine_predict"):
-            with st.spinner('Predicting...'):
+        if st.button("Classify", key="cuisine_predict"):
+            with st.spinner('Classifying...'):
                 # Rebuild the MobileNetV2 model structure
                 base_model = tf.keras.applications.MobileNetV2(weights=None, include_top=False, input_shape=(224, 224, 3))
 
