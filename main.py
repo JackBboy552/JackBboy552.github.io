@@ -60,7 +60,7 @@ def main():
     # Taste Recommender Section
     st.header("Food Recommender Based on Taste")
     st.write("Available food tastes: sweet, salty, sour, bitter, spicy")
-    user_tastes = st.text_input("What food tastes do you want? (e.g., sweet and sour; salty, sour, and spicy)", key="tastes")
+    user_tastes = st.text_input("What food tastes do you want? (e.g., sweet and sour; salty, sour, and spicy)", key="tastes_input")
 
     def get_taste_vector(taste_input):
         # Convert string of tastes to vector
@@ -101,7 +101,7 @@ def main():
 
     # Prediction Section
     st.header("Model Prediction")
-    test_image = st.file_uploader("Choose an Image:")
+    test_image = st.file_uploader("Choose an Image:", key="category_uploader")
 
     if test_image is not None:
         image = Image.open(test_image)
@@ -110,7 +110,7 @@ def main():
         st.markdown("<h3 style='text-align: left; color: green; font-size: 18px;'>Your Uploaded Image</h3>", unsafe_allow_html=True)
         st.image(image, width=400, use_column_width=False)
 
-        if st.button("Predict"):
+        if st.button("Predict Category", key="category_predict"):
             progress_text = "Prediction in progress. Please wait."
             my_bar = st.progress(0, text=progress_text)
 
@@ -136,17 +136,17 @@ def main():
     st.header("Cuisine Prediction with MobileNetV2")
     st.write("Upload an image of a dish and the model will predict the cuisine type.")
 
-    uploaded_file = st.file_uploader("Choose an image for cuisine prediction...", type=["jpg", "jpeg", "png"])
+    uploaded_file = st.file_uploader("Choose an image for cuisine prediction...", type=["jpg", "jpeg", "png"], key="cuisine_uploader")
 
     if uploaded_file is not None:
         cuisine_image = Image.open(uploaded_file)
         
         # Display the uploaded image
-        st.image(cuisine_image, caption='', use_column_width=True)
+        st.image(cuisine_image, caption='Uploaded Image for Cuisine Prediction.', use_column_width=True)
         st.markdown("<h3 style='text-align: left; color: green; font-size: 18px;'>Your Uploaded Image</h3>", unsafe_allow_html=True)
 
-        if st.button("Predict"):
-            with st.spinner('Classifying...'):
+        if st.button("Predict Cuisine", key="cuisine_predict"):
+            with st.spinner('Predicting...'):
                 # Rebuild the MobileNetV2 model structure
                 base_model = tf.keras.applications.MobileNetV2(weights=None, include_top=False, input_shape=(224, 224, 3))
 
