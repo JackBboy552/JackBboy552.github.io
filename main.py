@@ -50,12 +50,14 @@ def main():
     ''', language='markdown')
 
     # Display training and validation plots
-    st.header("Training and Validation Plots")
+    st.header("Model Visualization")
 
     # Load and display accuracy plot
     loss_plot_path = "img/loss_plot.png"
-    if os.path.exists(loss_plot_path):
-        st.image(loss_plot_path, caption='Training and Validation Loss')
+    cuisine_plot = "img/cuisine_plot.png"
+    if os.path.exists(loss_plot_path, cuisine_plot):
+        st.image(loss_plot_path, caption='Single Image Prediction Visualization')
+        st.image(cuisine_plot, caption='Cuisine Prediction with MobileNetV2')
 
     # Taste Recommender Section
     st.header("Food Recommender Based on Taste")
