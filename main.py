@@ -12,7 +12,7 @@ def main():
     st.set_page_config(page_title='CraveAI', page_icon='🍽️')
 
     # Page title with GIF header
-    st.header('AI-driven food identification and taste-based recommendation system ')
+    st.header('AI-Driven Food Identification and Taste-Based Recommendation System ')
     gif_path = "img/CraveAI.gif"  # Path to your GIF file
     if os.path.exists(gif_path):
         st.image(gif_path, use_column_width=True)
