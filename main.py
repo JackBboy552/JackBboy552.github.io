@@ -55,7 +55,7 @@ def main():
     # Load and display accuracy plot
     loss_plot_path = "img/loss_plot.png"
     cuisine_plot = "img/cuisine_plot.png"
-    if os.path.exists(loss_plot_path, cuisine_plot):
+    if os.path.exists(loss_plot_path):
         st.image(loss_plot_path, caption='Single Image Prediction Visualization')
         
     if os.path.exists(cuisine_plot):
