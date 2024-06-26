@@ -57,6 +57,8 @@ def main():
     cuisine_plot = "img/cuisine_plot.png"
     if os.path.exists(loss_plot_path, cuisine_plot):
         st.image(loss_plot_path, caption='Single Image Prediction Visualization')
+        
+    if os.path.exists(cuisine_plot):
         st.image(cuisine_plot, caption='Cuisine Prediction with MobileNetV2')
 
     # Taste Recommender Section
