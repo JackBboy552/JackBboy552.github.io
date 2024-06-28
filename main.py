@@ -104,7 +104,7 @@ def main():
         return class_index, confidence
 
     # Prediction Section
-    st.header("Model Prediction")
+    st.header("Food Category Image Prediction")
     test_image = st.file_uploader("Choose an Image:", key="category_uploader")
 
     if test_image is not None:
